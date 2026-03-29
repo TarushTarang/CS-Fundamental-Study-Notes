@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --border: #1f2433;
+    --accent1: #e8ff47;
+    --accent2: #47b8ff;
+    --accent3: #ff6b6b;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --tag-bg: #1a1f2e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Newsreader', serif;
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 56px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent1);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .label::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1px;
+    background: var(--accent1);
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 6vw, 60px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  h1 span {
+    color: var(--accent1);
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* Topics nav */
+  .topics-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  .nav-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    background: none;
+    text-decoration: none;
+  }
+
+  .nav-pill:hover, .nav-pill.active {
+    border-color: var(--accent1);
+    color: var(--accent1);
+    background: rgba(232, 255, 71, 0.05);
+  }
+
+  /* Sections */
+  .section {
+    margin-bottom: 64px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .section:nth-child(1) { animation-delay: 0.1s; }
+  .section:nth-child(2) { animation-delay: 0.2s; }
+  .section:nth-child(3) { animation-delay: 0.3s; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent1);
+    background: rgba(232, 255, 71, 0.08);
+    border: 1px solid rgba(232, 255, 71, 0.2);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .section-accent {
+    margin-left: auto;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .accent-yellow { background: var(--accent1); box-shadow: 0 0 10px var(--accent1); }
+  .accent-blue { background: var(--accent2); box-shadow: 0 0 10px var(--accent2); }
+  .accent-red { background: var(--accent3); box-shadow: 0 0 10px var(--accent3); }
+
+  /* Cards */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .card.yellow::before { background: var(--accent1); }
+  .card.blue::before { background: var(--accent2); }
+  .card.red::before { background: var(--accent3); }
+
+  .card:hover {
+    border-color: #2a3040;
+    transform: translateY(-2px);
+  }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .card.yellow .card-title { color: var(--accent1); }
+  .card.blue .card-title { color: var(--accent2); }
+  .card.red .card-title { color: var(--accent3); }
+
+  .card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .card ul li {
+    font-size: 13px;
+    color: #a0a8b8;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+  }
+
+  .card ul li::before {
+    content: '→';
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+
+  /* Big concept row */
+  .concept-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 600px) {
+    .concept-row { grid-template-columns: 1fr; }
+  }
+
+  /* Complexity table */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .table-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 10px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    color: #a0a8b8;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  td:first-child { color: var(--text); }
+
+  .complexity-good { color: #4ade80 !important; }
+  .complexity-ok { color: var(--accent1) !important; }
+  .complexity-bad { color: var(--accent3) !important; }
+
+  /* Highlight block */
+  .highlight-block {
+    background: rgba(232, 255, 71, 0.04);
+    border: 1px solid rgba(232, 255, 71, 0.15);
+    border-left: 3px solid var(--accent1);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+
+  .highlight-block.blue {
+    background: rgba(71, 184, 255, 0.04);
+    border-color: rgba(71, 184, 255, 0.15);
+    border-left-color: var(--accent2);
+  }
+
+  .highlight-block.red {
+    background: rgba(255, 107, 107, 0.04);
+    border-color: rgba(255, 107, 107, 0.15);
+    border-left-color: var(--accent3);
+  }
+
+  .highlight-block strong {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+    color: var(--accent1);
+  }
+
+  .highlight-block.blue strong { color: var(--accent2); }
+  .highlight-block.red strong { color: var(--accent3); }
+
+  .highlight-block p {
+    font-size: 13px;
+    color: #a0a8b8;
+    line-height: 1.6;
+  }
+
+  code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    background: rgba(255,255,255,0.06);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--accent1);
+  }
+
+  /* Tips row */
+  .tips-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  @media (max-width: 700px) {
+    .tips-row { grid-template-columns: 1fr; }
+  }
+
+  .tip-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .tip-block .tip-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .tip-block p {
+    font-size: 12px;
+    color: #a0a8b8;
+    line-height: 1.5;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+    animation: fadeUp 0.6s 0.4s ease both;
+  }
+
+  .footer-text {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    background: rgba(232, 255, 71, 0.08);
+    border: 1px solid rgba(232, 255, 71, 0.2);
+    border-radius: 100px;
+    color: var(--accent1);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+    margin: 32px 0;
+  }
+
+  /* Wide card */
+  .wide-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+
+  .wide-card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .wide-card-title .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .inline-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    color: #a0a8b8;
+  }
+
+  .tag.y { border-color: rgba(232,255,71,0.25); color: var(--accent1); background: rgba(232,255,71,0.05); }
+  .tag.b { border-color: rgba(71,184,255,0.25); color: var(--accent2); background: rgba(71,184,255,0.05); }
+  .tag.r { border-color: rgba(255,107,107,0.25); color: var(--accent3); background: rgba(255,107,107,0.05); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="label">Interview Preparation</div>
+    <h1>CS <span>Fundamentals</span><br>Study Notes</h1>
+    <p class="subtitle">Data Structures · Algorithm Analysis · Database Management</p>
+  </div>
+
+  <!-- Nav -->
+  <div class="topics-nav">
+    <a href="#ds" class="nav-pill active">01 — Data Structures</a>
+    <a href="#algo" class="nav-pill">02 — Algorithm Analysis</a>
+    <a href="#db" class="nav-pill">03 — Database Management</a>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- SECTION 1: DATA STRUCTURES             -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="ds">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <span class="section-title">Data Structures</span>
+      <span class="section-accent accent-yellow"></span>
+    </div>
+
+    <!-- Linear -->
+    <div class="cards-grid">
+      <div class="card yellow">
+        <div class="card-title">Arrays</div>
+        <ul>
+          <li>Fixed or dynamic size; contiguous memory</li>
+          <li>O(1) access by index, O(n) search (unsorted)</li>
+          <li>O(n) insert/delete (due to shifting)</li>
+          <li>Best for: random access, iteration</li>
+        </ul>
+      </div>
+      <div class="card yellow">
+        <div class="card-title">Linked Lists</div>
+        <ul>
+          <li>Nodes with data + pointer to next (or prev)</li>
+          <li>O(1) insert/delete at head; O(n) elsewhere</li>
+          <li>No random access — O(n) traversal</li>
+          <li>Types: Singly, Doubly, Circular</li>
+        </ul>
+      </div>
+      <div class="card yellow">
+        <div class="card-title">Stacks & Queues</div>
+        <ul>
+          <li>Stack — LIFO: push, pop, peek in O(1)</li>
+          <li>Queue — FIFO: enqueue, dequeue in O(1)</li>
+          <li>Deque: insert/remove from both ends</li>
+          <li>Priority Queue: highest priority served first</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="highlight-block">
+      <strong>Key Interview Insight</strong>
+      <p>Stack → function call stack, undo history, bracket matching. Queue → BFS, job scheduling, print spooling. Know which to use instantly.</p>
+    </div>
+
+    <!-- Trees -->
+    <div class="wide-card">
+      <div class="wide-card-title">
+        <span class="dot" style="background:var(--accent1)"></span>
+        Trees
+      </div>
+      <div class="inline-list">
+        <span class="tag y">Binary Tree</span>
+        <span class="tag y">BST — O(log n) avg</span>
+        <span class="tag y">AVL / Red-Black (balanced)</span>
+        <span class="tag y">Heap (min/max)</span>
+        <span class="tag y">Trie (prefix tree)</span>
+        <span class="tag y">Segment Tree</span>
+        <span class="tag y">B-Tree (disk storage)</span>
+      </div>
+    </div>
+
+    <div class="concept-row">
+      <div class="card yellow">
+        <div class="card-title">Tree Traversals</div>
+        <ul>
+          <li><strong>Inorder</strong> (L→Root→R) — sorted output for BST</li>
+          <li><strong>Preorder</strong> (Root→L→R) — copy a tree</li>
+          <li><strong>Postorder</strong> (L→R→Root) — delete a tree</li>
+          <li><strong>Level-order</strong> — BFS, shortest path</li>
+        </ul>
+      </div>
+      <div class="card yellow">
+        <div class="card-title">Graphs</div>
+        <ul>
+          <li>Directed / Undirected; Weighted / Unweighted</li>
+          <li>Represented as: Adjacency List or Matrix</li>
+          <li>BFS → shortest path (unweighted)</li>
+          <li>DFS → cycle detection, topological sort</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Hash -->
+    <div class="card yellow" style="margin-bottom:16px">
+      <div class="card-title">Hash Table</div>
+      <ul>
+        <li>Key → hash function → index in array</li>
+        <li>Average O(1) insert, delete, lookup</li>
+        <li>Collision handling: Chaining (linked list) or Open Addressing (linear/quadratic probing)</li>
+        <li>Load factor: # items / capacity — keep below ~0.7 for performance</li>
+      </ul>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-label">Quick Complexity Reference</div>
+      <table>
+        <thead><tr><th>Structure</th><th>Access</th><th>Search</th><th>Insert</th><th>Delete</th></tr></thead>
+        <tbody>
+          <tr><td>Array</td><td class="complexity-good">O(1)</td><td class="complexity-bad">O(n)</td><td class="complexity-bad">O(n)</td><td class="complexity-bad">O(n)</td></tr>
+          <tr><td>Linked List</td><td class="complexity-bad">O(n)</td><td class="complexity-bad">O(n)</td><td class="complexity-good">O(1)</td><td class="complexity-good">O(1)</td></tr>
+          <tr><td>BST (balanced)</td><td class="complexity-ok">O(log n)</td><td class="complexity-ok">O(log n)</td><td class="complexity-ok">O(log n)</td><td class="complexity-ok">O(log n)</td></tr>
+          <tr><td>Hash Table</td><td>—</td><td class="complexity-good">O(1) avg</td><td class="complexity-good">O(1) avg</td><td class="complexity-good">O(1) avg</td></tr>
+          <tr><td>Heap</td><td>—</td><td class="complexity-bad">O(n)</td><td class="complexity-ok">O(log n)</td><td class="complexity-ok">O(log n)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- SECTION 2: ALGORITHM ANALYSIS          -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="algo">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <span class="section-title">Algorithm Analysis</span>
+      <span class="section-accent accent-blue"></span>
+    </div>
+
+    <div class="highlight-block blue">
+      <strong>Big-O Notation</strong>
+      <p>Describes worst-case growth rate. O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!). Always reduce constants — O(2n) = O(n).</p>
+    </div>
+
+    <div class="table-wrap" style="margin-bottom:16px">
+      <div class="table-label">Sorting Algorithms</div>
+      <table>
+        <thead><tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Space</th><th>Stable?</th></tr></thead>
+        <tbody>
+          <tr><td>Bubble Sort</td><td class="complexity-ok">O(n)</td><td class="complexity-bad">O(n²)</td><td class="complexity-bad">O(n²)</td><td class="complexity-good">O(1)</td><td>✓</td></tr>
+          <tr><td>Selection Sort</td><td class="complexity-bad">O(n²)</td><td class="complexity-bad">O(n²)</td><td class="complexity-bad">O(n²)</td><td class="complexity-good">O(1)</td><td>✗</td></tr>
+          <tr><td>Insertion Sort</td><td class="complexity-good">O(n)</td><td class="complexity-bad">O(n²)</td><td class="complexity-bad">O(n²)</td><td class="complexity-good">O(1)</td><td>✓</td></tr>
+          <tr><td>Merge Sort</td><td class="complexity-ok">O(n log n)</td><td class="complexity-ok">O(n log n)</td><td class="complexity-ok">O(n log n)</td><td class="complexity-bad">O(n)</td><td>✓</td></tr>
+          <tr><td>Quick Sort</td><td class="complexity-ok">O(n log n)</td><td class="complexity-ok">O(n log n)</td><td class="complexity-bad">O(n²)</td><td class="complexity-ok">O(log n)</td><td>✗</td></tr>
+          <tr><td>Heap Sort</td><td class="complexity-ok">O(n log n)</td><td class="complexity-ok">O(n log n)</td><td class="complexity-ok">O(n log n)</td><td class="complexity-good">O(1)</td><td>✗</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cards-grid">
+      <div class="card blue">
+        <div class="card-title">Searching</div>
+        <ul>
+          <li>Linear Search — O(n), works on any array</li>
+          <li>Binary Search — O(log n), sorted arrays only</li>
+          <li>BFS — shortest path, level-wise exploration</li>
+          <li>DFS — deep-dive, uses stack/recursion</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <div class="card-title">Divide & Conquer</div>
+        <ul>
+          <li>Split problem → solve subproblems → merge</li>
+          <li>Merge Sort, Quick Sort, Binary Search</li>
+          <li>Master Theorem: T(n) = aT(n/b) + f(n)</li>
+          <li>Great for parallelism & recursion problems</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <div class="card-title">Dynamic Programming</div>
+        <ul>
+          <li>Optimal substructure + overlapping subproblems</li>
+          <li>Top-down: Memoization (cache recursion)</li>
+          <li>Bottom-up: Tabulation (fill table iteratively)</li>
+          <li>Classic: Knapsack, LCS, Fibonacci, DP on grids</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <div class="card-title">Greedy Algorithms</div>
+        <ul>
+          <li>Locally optimal choice at each step</li>
+          <li>No backtracking; not always globally optimal</li>
+          <li>Classic: Dijkstra, Prim, Kruskal, Huffman</li>
+          <li>Proof required: show greedy choice is safe</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="highlight-block blue">
+      <strong>Graph Algorithms — Must Know</strong>
+      <p>
+        <strong style="color:var(--accent2); font-size:11px">Dijkstra</strong> — shortest path, non-negative weights, O((V+E) log V).<br>
+        <strong style="color:var(--accent2); font-size:11px">Bellman-Ford</strong> — handles negative weights, O(VE).<br>
+        <strong style="color:var(--accent2); font-size:11px">Floyd-Warshall</strong> — all-pairs shortest path, O(V³).<br>
+        <strong style="color:var(--accent2); font-size:11px">Kruskal / Prim</strong> — Minimum Spanning Tree.
+      </p>
+    </div>
+
+    <div class="tips-row">
+      <div class="tip-block">
+        <div class="tip-label">Recursion</div>
+        <p>Define base case first. Think: what's the smallest valid input? Space is O(depth) due to call stack.</p>
+      </div>
+      <div class="tip-block">
+        <div class="tip-label">Two Pointers</div>
+        <p>Fast + slow pointer tricks for linked lists (cycle detection) and sorted array problems (pair sum).</p>
+      </div>
+      <div class="tip-block">
+        <div class="tip-label">Sliding Window</div>
+        <p>Efficient O(n) technique for subarray/substring problems. Expand right, shrink left on condition.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- SECTION 3: DATABASE MANAGEMENT         -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="db">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <span class="section-title">Database Management</span>
+      <span class="section-accent accent-red"></span>
+    </div>
+
+    <div class="cards-grid">
+      <div class="card red">
+        <div class="card-title">RDBMS Core</div>
+        <ul>
+          <li>Tables (relations), rows (tuples), columns (attributes)</li>
+          <li>Primary Key — uniquely identifies a row</li>
+          <li>Foreign Key — links two tables (referential integrity)</li>
+          <li>Constraints: NOT NULL, UNIQUE, CHECK, DEFAULT</li>
+        </ul>
+      </div>
+      <div class="card red">
+        <div class="card-title">SQL Essentials</div>
+        <ul>
+          <li><code>SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER BY</code></li>
+          <li>JOINs: INNER, LEFT, RIGHT, FULL OUTER, CROSS</li>
+          <li>Aggregates: COUNT, SUM, AVG, MAX, MIN</li>
+          <li>Subqueries, CTEs (<code>WITH</code>), Window functions</li>
+        </ul>
+      </div>
+      <div class="card red">
+        <div class="card-title">ACID Properties</div>
+        <ul>
+          <li><strong>A</strong>tomicity — all or nothing</li>
+          <li><strong>C</strong>onsistency — valid state before & after</li>
+          <li><strong>I</strong>solation — transactions don't interfere</li>
+          <li><strong>D</strong>urability — committed data survives failure</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="highlight-block red">
+      <strong>Normalization — Quick Reference</strong>
+      <p>
+        <strong style="color:var(--accent3); font-size:11px">1NF</strong> — Atomic values, no repeating groups.<br>
+        <strong style="color:var(--accent3); font-size:11px">2NF</strong> — 1NF + no partial dependency (every non-key column depends on whole PK).<br>
+        <strong style="color:var(--accent3); font-size:11px">3NF</strong> — 2NF + no transitive dependency (non-key columns depend only on PK).<br>
+        <strong style="color:var(--accent3); font-size:11px">BCNF</strong> — Stronger 3NF; every determinant is a candidate key.
+      </p>
+    </div>
+
+    <div class="concept-row">
+      <div class="card red">
+        <div class="card-title">Indexing</div>
+        <ul>
+          <li>Speeds up SELECT; slows INSERT/UPDATE/DELETE</li>
+          <li>B-Tree index — default; range queries</li>
+          <li>Hash index — exact match only</li>
+          <li>Composite index — column order matters!</li>
+          <li>Covering index — satisfies query without table lookup</li>
+        </ul>
+      </div>
+      <div class="card red">
+        <div class="card-title">Transactions & Locking</div>
+        <ul>
+          <li>BEGIN / COMMIT / ROLLBACK / SAVEPOINT</li>
+          <li>Dirty read, Non-repeatable read, Phantom read</li>
+          <li>Isolation levels: READ UNCOMMITTED → SERIALIZABLE</li>
+          <li>Deadlock — circular dependency; DB auto-detects</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="table-wrap" style="margin-bottom:16px">
+      <div class="table-label">SQL vs NoSQL — Key Differences</div>
+      <table>
+        <thead><tr><th>Aspect</th><th>SQL (Relational)</th><th>NoSQL</th></tr></thead>
+        <tbody>
+          <tr><td>Schema</td><td>Fixed, predefined</td><td>Dynamic / schemaless</td></tr>
+          <tr><td>Scaling</td><td>Vertical (scale up)</td><td>Horizontal (scale out)</td></tr>
+          <tr><td>Consistency</td><td class="complexity-good">ACID</td><td>BASE (eventual consistency)</td></tr>
+          <tr><td>Data Model</td><td>Tables & rows</td><td>Document, KV, Graph, Column</td></tr>
+          <tr><td>Best For</td><td>Structured, relational data</td><td>Large-scale, flexible data</td></tr>
+          <tr><td>Examples</td><td>PostgreSQL, MySQL, SQLite</td><td>MongoDB, Redis, Cassandra</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="wide-card">
+      <div class="wide-card-title">
+        <span class="dot" style="background:var(--accent3)"></span>
+        CAP Theorem
+      </div>
+      <div class="inline-list">
+        <span class="tag r">Consistency — all nodes see same data</span>
+        <span class="tag r">Availability — every request gets a response</span>
+        <span class="tag r">Partition Tolerance — works despite network splits</span>
+      </div>
+      <p style="font-size:12px; color:var(--muted); margin-top:12px; font-family:'IBM Plex Mono',monospace;">A distributed system can guarantee at most 2 of 3 simultaneously. Most systems choose CP (e.g. HBase) or AP (e.g. Cassandra).</p>
+    </div>
+
+    <div class="tips-row">
+      <div class="tip-block">
+        <div class="tip-label">Query Optimization</div>
+        <p>Use <code>EXPLAIN</code> / <code>EXPLAIN ANALYZE</code>. Avoid <code>SELECT *</code>. Filter early with <code>WHERE</code>. Use indexes on join/filter columns.</p>
+      </div>
+      <div class="tip-block">
+        <div class="tip-label">Stored Procedures</div>
+        <p>Precompiled SQL blocks stored on the server. Reduces network traffic; reusable logic; can accept parameters.</p>
+      </div>
+      <div class="tip-block">
+        <div class="tip-label">Views & Triggers</div>
+        <p>View — virtual table (saved query). Trigger — auto-executes on INSERT/UPDATE/DELETE events on a table.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span class="footer-text">Good luck on your interview →</span>
+    <span class="badge">CS Fundamentals · 2026</span>
+  </div>
+
+</div>
+</body>
+</html>
